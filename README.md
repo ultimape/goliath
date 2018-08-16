@@ -164,7 +164,7 @@ This is a rough guideline of what I'm thinking needs to get done. This is an evo
 *Stuff I need to write code to do*  
 - [x] Tool to scavange for tweet IDs in Twitter Archive
 - [ ] Consume archive .zip files directly
-- [ ] Incremental support (feed in new backup export, reuse old data)
+- [ ] Incremental support (feed in new backup export, reuse / update old data)
 - [ ] Monitor tweet stream for continuous backup
 - [ ] End to End automation: Insert backup, output complete jsonl w/ images.
 - [ ] Error checking / recovery
