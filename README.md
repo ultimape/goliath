@@ -161,7 +161,7 @@ This is a rough guideline of what I'm thinking needs to get done. This is an evo
 - [ ] download images
 
 **Programatic features:**  
-*Stuff I need to write code to do*
+*Stuff I need to write code to do*  
 - [x] Tool to scavange for tweet IDs in Twitter Archive
 - [ ] Consume archive .zip files directly
 - [ ] Incremental support (feed in new backup export, reuse old data)
@@ -173,8 +173,8 @@ This is a rough guideline of what I'm thinking needs to get done. This is an evo
   - [ ] Periodic reattempts
 - [ ] Convert to Mastodon flavored activitypub
 
-**Features for widespread use**
-**stuff that would help others use this**
+**Features for widespread use**  
+*stuff that would help others use this*  
 - [ ] A offline backup viewer for Mastodon flavored activitypub, thread capable
 - [ ] Offline search tool that consumes Mastodon flavored activitypub
 - [ ] Turn into an opensource self-hosted / docker service
