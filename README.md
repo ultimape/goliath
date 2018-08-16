@@ -179,11 +179,16 @@ This is a rough guideline of what I'm thinking needs to get done. This is an evo
 - [ ] Offline search tool that consumes Mastodon flavored activitypub
 - [ ] Turn into an opensource self-hosted / docker service
 - [ ] Provide self-service platform online (remove need DEV api KEY)
-  - [ ] A way to monetize expensive features? (donations?)
+  - [ ] A way to pay for expensive features at cost? (donations? tips? funding drives?)
+  - [ ] Vuild a script for users to run on their end to avoid downloading bulk images
+  - [ ] Lightweight
+  - [ ] Minimize Risk Profile (super important)
+  - [ ] No storing of user identifiable info
+  - [ ] No storing of tweet data beyond nessiary to offer download, delete after done
 - [ ] Safe way to access tweets that aren't part of your backup.
   - [ ] Encrypted Storage
-    - [ ] Optionally store backups keybase's filesystem - providing public acessible / private shared access(?)
+    - [ ] Optionally store backups in keybase's filesystem - providing public acessible / private shared access(?)
   - [ ] Reference Twitter/Mastodon API's follower/following lists
   - [ ] Portal to authorize mutual sharing of backups (like https://bridge.joinmastodon.org/ ?)
-  - [ ] share / renknit tweets over DAT:// or other decentralized service
+  - [ ] Share / renknit tweets over DAT:// or other decentralized service?
   - [ ] Submitting tweet corpuses to archive.org?
