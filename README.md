@@ -162,7 +162,7 @@ This is a rough guideline of what I'm thinking needs to get done. This is an evo
 
 **Programatic features:**  
 *Stuff I need to write code to do*
-- [ ] Tool to scavange for tweet IDs in Twitter Archive
+- [x] Tool to scavange for tweet IDs in Twitter Archive
 - [ ] Consume archive .zip files directly
 - [ ] Incremental support (feed in new backup export, reuse old data)
 - [ ] Monitor tweet stream for continuous backup
