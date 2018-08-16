@@ -38,6 +38,7 @@ Under the *Big Picture* section below, I describe the current workflow I am usin
 
 My goal for this project is to automate this entire process. I aim to provide a more fluid and complete offline interface for interacting with your tweets/threads based on the data from the twitter API.
 
+----
 
 ## How to Use
 
@@ -142,6 +143,8 @@ Use WGET to download ***MY*** media urls (optional):
 Use WGET to download ***ALL*** media urls:  
 `mkdir -p tweets/images`  
 `wget -P ./tweets/images/ -i ./media_urls_tweets.txt --wait=5 --random-wait --no-clobber --adjust-extension`
+
+----
 
 ## Future Goals and Milestones
 
