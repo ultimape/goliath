@@ -148,4 +148,42 @@ Use WGET to download ***ALL*** media urls:
 
 ## Future Goals and Milestones
 
-// TBA
+This is a rough guideline of what I'm thinking needs to get done. This is an evolving list. No promises.
+
+**Manual Exploration:**  
+*Stuff I've figured out how to do manually*  
+- [x] export tweets 
+- [x] extract
+- [x] script to comb thru json for relevant tweet IDs
+- [x] use twarc to download the real data from the twitter API / correct images links 
+- [x] extract correct media file urls
+- [ ] extract user avatars 
+- [ ] download images
+
+**Programatic features:**  
+*Stuff I need to write code to do*
+- [ ] Tool to scavange for tweet IDs in Twitter Archive
+- [ ] Consume archive .zip files directly
+- [ ] Incremental support (feed in new backup export, reuse old data)
+- [ ] Monitor tweet stream for continuous backup
+- [ ] End to End automation: Insert backup, output complete jsonl w/ images.
+- [ ] Error checking / recovery
+  - [ ] Deleted tweets
+  - [ ] Temporarily inaccessible tweets
+  - [ ] Periodic reattempts
+- [ ] Convert to Mastodon flavored activitypub
+
+**Features for widespread use**
+**stuff that would help others use this**
+- [ ] A offline backup viewer for Mastodon flavored activitypub, thread capable
+- [ ] Offline search tool that consumes Mastodon flavored activitypub
+- [ ] Turn into an opensource self-hosted / docker service
+- [ ] Provide self-service platform online (remove need DEV api KEY)
+  - [ ] A way to monetize expensive features? (donations?)
+- [ ] Safe way to access tweets that aren't part of your backup.
+  - [ ] Encrypted Storage
+    - [ ] Optionally store backups keybase's filesystem - providing public acessible / private shared access(?)
+  - [ ] Reference Twitter/Mastodon API's follower/following lists
+  - [ ] Portal to authorize mutual sharing of backups (like https://bridge.joinmastodon.org/ ?)
+  - [ ] share / renknit tweets over DAT:// or other decentralized service
+  - [ ] Submitting tweet corpuses to archive.org?
