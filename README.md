@@ -22,9 +22,9 @@ It is intended to be a tool to get a more complete export of your twitter archiv
 
 From what I can tell, Twitter released the archive functionality [back in 2012](https://blog.twitter.com/official/en_us/a/2012/your-twitter-archive.html) and it hasn't really been updated since. A number of outstanding deficiencies still exist, many outlined in this blog [post from 2013](https://shkspr.mobi/blog/2013/02/deficiencies-in-the-twitter-archive/) a mere ~3 months after the feature rollout.
 
-As a number of people are seeking to leave this platform for greener pastures (myself included), so this completely broken archive system is unacceptable.
+As a number of people are seeking to leave this platform for greener pastures (myself included), this completely broken archive system is *unacceptable*. I seek to fix that.
 
-**Problems Include, but not limited to:**
+**Problems with the Archive Include, but are not limited to:**
 * Images are not part of the archive, but are still stored on twitter's image hosting service.
 * If you delete the original tweet off of Twitter, the associated images are also removed.
 * You are unable to view tweets as threads, even your own.
