@@ -146,7 +146,7 @@ Use WGET to download ***ALL*** media urls:
 
 ----
 
-## Future Goals and Milestones
+## Future Goals, Milestones, and TODO
 
 This is a rough guideline of what I'm thinking needs to get done. This is an evolving list. No promises.
 
@@ -163,6 +163,12 @@ This is a rough guideline of what I'm thinking needs to get done. This is an evo
 **Programatic features:**  
 *Stuff I need to write code to do*  
 - [x] Tool to scavange for tweet IDs in Twitter Archive
+  - [x] gather tweet IDs
+  - [x] gather retweet IDs (older RT @username bla bla)
+  - [x] gather retweeted tweet IDs 
+  - [x] gather quotetweet IDs (technically just links back to twitter.com/)
+  - [x] gather "in reply to" (for recreating context)
+  - [x] deduplication of IDs
 - [x] Consume archive .zip files directly
 - [ ] Incremental support (feed in new backup export, reuse / update old data)
 - [ ] Monitor tweet stream for continuous backup
