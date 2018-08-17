@@ -308,6 +308,11 @@ def extract_tweets_from_tweet_export(tweets_by_month, EXPORT_LOCATION, is_zip_ar
                     # capture replyto to recreate context
                     replyto_count += capture_replyto(tweet, replyto_ids_file)
 
+                    # try to capture the retweeted status' replyto since we can
+                    if is_retweet(tweet):
+                        retweeted_tweet = tweet['retweeted_status']
+                        replyto_count += capture_replyto(retweeted_tweet, replyto_ids_file)
+
                 # End loop 2 (tweets in a month)
 
                 print("    Parsed %s tweets, %s retweets, %s quotetweets, and %s reply_tos, from \"data/js/tweets/%s_%s.js\"" %
