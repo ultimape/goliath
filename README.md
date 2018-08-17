@@ -86,7 +86,7 @@ Tweet IDs will be exported to a couple of files match the pattern `backup_export
 
 ### Working with ID files
 
-At the moment, tweet IDs are saved to four different files depending on what kind of tweet they are.
+At the moment, tweet IDs are saved to different files depending on what kind of tweet they are.
 
 Due to the way tweets, retweets, and quotetweets work (and how they are encoded in the archive), it might seem a little strange.
 
@@ -176,14 +176,14 @@ This is a rough guideline of what I'm thinking needs to get done. This is an evo
   - [x] gather "in reply to" (for recreating context)
   - [x] deduplication of IDs
 - [x] Consume archive .zip files directly
-- [ ] Incremental support (feed in new backup export, reuse / update old data)
-- [ ] Monitor tweet stream for continuous backup
 - [ ] End to End automation: Insert backup, output complete jsonl w/ images.
 - [ ] Error checking / recovery
   - [ ] Deleted tweets
   - [ ] Temporarily inaccessible tweets
   - [ ] Periodic reattempts
-- [ ] Convert to Mastodon flavored activitypub
+- [ ] Incremental support (feed in new backup export, reuse / update old data)
+- [ ] Monitor tweet stream for continuous backup
+- [ ] Converter to generate Mastodon flavored ActivityPub compatible json
 
 **Features for widespread use**  
 *stuff that would help others use this*  
