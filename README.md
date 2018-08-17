@@ -74,13 +74,13 @@ After rehydrating, I use one of twarc's utilities to extract all the media urls 
 
 Under the `eatgrail` directory, is a python module called `eatgrail.py` that can be ran directly as a script. This module can be told about to your twitter acrchive directory, and it will harvest tweet IDs for you.
 
-One you have your twitter archive, extract/unzip it. Then you can run eatgrail.py from a commandline/console/terminal as follows:
+One you have your twitter archive you can run eatgrail.py from a commandline/console/terminal as follows:
 
-`$ ./eatgrail/eatgrail.py -extract ./[$PATH_TO_ROOT_OF_ARCHIVE]`
+`$ ./eatgrail/eatgrail.py -extract ./[$PATH_TO_ARCHIVE_ZIP]`
 
-Be sure to replace `[$PATH_TO_ROOT_OF_ARCHIVE]` with the directory of your archive
+Be sure to replace `[$PATH_TO_ARCHIVE_ZIP]` with the directory and filename of your archive
 
-The script depends on the orginal structure of the acrhive, and will look for the file `[$PATH_TO_ROOT_OF_ARCHIVE]/data/js/tweets/tweet_index.js` and begin reading in tweets, exporting tweet IDs as it goes.
+The script depends on the orginal structure of the acrhive, and will look for the file `data/js/tweets/tweet_index.js` and begin reading in tweets, exporting tweet IDs as it goes. *Note*: you can also point to an extracted archive and it will look for those files within it directly instead of inside of the Zip file.
 
 Tweet IDs will be exported/saved to a couple of files with a `.txt` extension, into whatever your console/terminal's current working dirctor is.
 
@@ -163,7 +163,7 @@ This is a rough guideline of what I'm thinking needs to get done. This is an evo
 **Programatic features:**  
 *Stuff I need to write code to do*  
 - [x] Tool to scavange for tweet IDs in Twitter Archive
-- [ ] Consume archive .zip files directly
+- [x] Consume archive .zip files directly
 - [ ] Incremental support (feed in new backup export, reuse / update old data)
 - [ ] Monitor tweet stream for continuous backup
 - [ ] End to End automation: Insert backup, output complete jsonl w/ images.
