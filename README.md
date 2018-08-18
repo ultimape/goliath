@@ -20,7 +20,7 @@ Future Site: https://murmurology.wovensoup.com
 
 Goliath BirdEater is intended to be a tool to get a more complete export of your Twitter Archive.
 
-Twitter released their archive functionality [back in 2012](https://blog.Twitter.com/official/en_us/a/2012/your-Twitter-archive.html) and it hasn't really been updated since. A number of outstanding deficiencies still exist, many outlined in this blog [post from 2013](https://shkspr.mobi/blog/2013/02/deficiencies-in-the-Twitter-archive/) a mere ~3 months after the feature rollout. It has been nearly 6 years and there are no signs that the Archive is going to be improved.
+Twitter released their archive functionality [back in 2012](https://blog.twitter.com/official/en_us/a/2012/your-Twitter-archive.html) and it hasn't really been updated since. A number of outstanding deficiencies still exist, many outlined in this blog [post from 2013](https://shkspr.mobi/blog/2013/02/deficiencies-in-the-Twitter-archive/) a mere ~3 months after the feature rollout. It has been nearly 6 years and there are no signs that the Archive is going to be improved.
 
 As a number of people are seeking to leave the platform for greener pasture (*\*cough\** Mastodon *\*cough\**), this completely broken archive system is *unacceptable*.
 
@@ -97,7 +97,7 @@ Due to the way tweets, retweets, and quotetweets work (and how they are encoded 
 
 **When you retweet a tweet**: Internally, you are actually creating your own tweet that encapsulates the other tweet with an "RT @username " appended to the front. This is due to the historical nature of how Twitter implemented the RT'ing functionality into their service. the "RT @username " thing was originally more of a social convention. Twitter then adopted this as a feature in their interface, hiding the RT to maintain backwards compatibility for older clients. I am not certain about older tweets, but in all RTs (since that was implemented) also contain the ID of the originla tweet being Retweeted. I've split these two IDs into buckets. The 'retweet_ids' are your "RT @username " tweets, and the "retweeted_ids" are the IDs of the original tweet being retweeted. *It is important to capture both*, because the retweet_ids tell us when YOU retweeted it, and the retweeted_ids contain the all the retweeted content.
 
-**When you quotetweet a tweet**: The Twitter archvie does not currently encode anything about the tweet being quoted. Structurally it is just treated as a link to another tweet in the vein of `https://Twitter.com/user/status/[TWEET_ID]`. This is one of the deficiencies in the archive data. I've instructed the script to look for these URLs and read out the embedded Tweet IDs. This is to ensure that all the relevant tweets and context are being captured to match the current day behavior of Twitter's UI. Due to the nature of of the embedded URLs, the script can not distinguish which of the URLs was intended to be the quoted tweet, so it will grab all links to Twitter statuses.
+**When you quotetweet a tweet**: The Twitter archvie does not currently encode anything about the tweet being quoted. Structurally it is just treated as a link to another tweet in the vein of `https://twitter.com/user/status/[TWEET_ID]`. This is one of the deficiencies in the archive data. I've instructed the script to look for these URLs and read out the embedded Tweet IDs. This is to ensure that all the relevant tweets and context are being captured to match the current day behavior of Twitter's UI. Due to the nature of of the embedded URLs, the script can not distinguish which of the URLs was intended to be the quoted tweet, so it will grab all links to Twitter statuses.
 
 **I do not currently handle moments or polls**: I am not even sure if/how they appear in the Twitter Archive. Feel free to make pull-requests accounting for them.
 
@@ -182,7 +182,7 @@ It is an evolving list. *Not promises*.
   - [x] gather tweet IDs
   - [x] gather retweet IDs (older RT @username bla bla)
   - [x] gather retweeted tweet IDs 
-  - [x] gather quotetweet IDs (technically just links back to Twitter.com/)
+  - [x] gather quotetweet IDs (technically just links back to twitter.com/)
   - [x] gather "in reply to" (for recreating context)
   - [x] deduplication of IDs
 - [x] Consume archive .zip files directly
