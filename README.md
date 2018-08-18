@@ -75,9 +75,9 @@ After rehydrating, we leverage one of twarc's utilities to extract all the media
 
 ### Parsing the archive
 
-Under the `eatgrail` directory is a python module called `eatgrail.py` that can be ran directly as a script. This module can be told about your twitter acrchive directory, and it will harvest tweet IDs for you.
+Under the `eatgrail` directory within this repository is a python module called `eatgrail.py` that can be ran directly as a script. This module can be told about your Twitter acrchive, and will harvest tweet IDs for you.
 
-Once you have your twitter archive you can run eatgrail.py from a commandline/console/terminal as follows:
+Once you have your Twitter archive you can run eatgrail.py from a commandline/console/terminal as follows:
 
 `$ ./eatgrail/eatgrail.py -extract ./[$PATH_TO_ARCHIVE_ZIP]`
 
