@@ -46,7 +46,7 @@ The goal for this project is to automate this entire process. The most immediate
 
 ### Big Picture
 
-The current workflow is to parse through the Twitter Archive to harvest relevant tweet IDs, storing them in as newline separated files.
+The current workflow is to parse through the Twitter Archive to harvest relevant tweet IDs, storing them as newline separated files.
 
 They look something like this:
 
