@@ -1,4 +1,4 @@
-# Goliath Birdeater
+# Goliath BirdEater
 
 ## A birdsite spider; For backing up your external brain.
 
@@ -18,13 +18,13 @@ Future Site: https://murmurology.wovensoup.com
 
 ***This is a work in progress.***
 
-It is intended to be a tool to get a more complete export of your twitter archive.
+Goliath BirdEater is intended to be a tool to get a more complete export of your Twitter Archive.
 
-Twitter released the archive functionality [back in 2012](https://blog.twitter.com/official/en_us/a/2012/your-twitter-archive.html) and it hasn't really been updated since. A number of outstanding deficiencies still exist, many outlined in this blog [post from 2013](https://shkspr.mobi/blog/2013/02/deficiencies-in-the-twitter-archive/) a mere ~3 months after the feature rollout.
+Twitter released their archive functionality [back in 2012](https://blog.twitter.com/official/en_us/a/2012/your-twitter-archive.html) and it hasn't really been updated since. A number of outstanding deficiencies still exist, many outlined in this blog [post from 2013](https://shkspr.mobi/blog/2013/02/deficiencies-in-the-twitter-archive/) a mere ~3 months after the feature rollout. It has been nearly 6 years and there are no signs that the Archive is going to be improved.
 
-As a number of people are seeking to leave the platform for greener pastures, this completely broken archive system is *unacceptable*.
+As a number of people are seeking to leave the platform for greener pasture (*\*cough\** Mastodon *\*cough\**), this completely broken archive system is *unacceptable*.
 
-Goliath is a tool that seeks to fix that.
+We seek to fix that.
 
 **Problems with the Archive Include, but are not limited to:**
 * Images are not part of the archive, but are still stored on twitter's image hosting service.
