@@ -20,14 +20,14 @@ Future Site: https://murmurology.wovensoup.com
 
 Goliath BirdEater is intended to be a tool to get a more complete export of your Twitter Archive.
 
-Twitter released their archive functionality [back in 2012](https://blog.twitter.com/official/en_us/a/2012/your-twitter-archive.html) and it hasn't really been updated since. A number of outstanding deficiencies still exist, many outlined in this blog [post from 2013](https://shkspr.mobi/blog/2013/02/deficiencies-in-the-twitter-archive/) a mere ~3 months after the feature rollout. It has been nearly 6 years and there are no signs that the Archive is going to be improved.
+Twitter released their archive functionality [back in 2012](https://blog.Twitter.com/official/en_us/a/2012/your-Twitter-archive.html) and it hasn't really been updated since. A number of outstanding deficiencies still exist, many outlined in this blog [post from 2013](https://shkspr.mobi/blog/2013/02/deficiencies-in-the-Twitter-archive/) a mere ~3 months after the feature rollout. It has been nearly 6 years and there are no signs that the Archive is going to be improved.
 
 As a number of people are seeking to leave the platform for greener pasture (*\*cough\** Mastodon *\*cough\**), this completely broken archive system is *unacceptable*.
 
 We seek to fix that.
 
 **Problems with the Archive Include, but are not limited to:**
-* Images are not part of the archive, but are still stored on twitter's image hosting service.
+* Images are not part of the archive, but are still stored on Twitter's image hosting service.
 * If you delete the original tweet off of Twitter, the associated images are also removed.
 * Many images in the backup itself are not even linked properly to begin with.
 * You are unable to view tweets as threads, even your own.
@@ -38,7 +38,7 @@ We seek to fix that.
 
 It is possible to take these archives and transform them into an up-to-date and hopefully more complete archive.
 
-The goal for this project is to automate this entire process. The most immediate goal is to build something to automate the downloading of all of your images. The longterm aim is to provide a fluid offline interface for interacting with your tweets/threads based on the data from the twitter API.
+The goal for this project is to automate this entire process. The most immediate goal is to build something to automate the downloading of all of your images. The longterm aim is to provide a fluid offline interface for interacting with your tweets/threads based on the data from the Twitter API.
 
 ----
 
@@ -46,7 +46,7 @@ The goal for this project is to automate this entire process. The most immediate
 
 ### Big Picture
 
-The current workflow is to parse through the twitter archive to harvest relevant tweet IDs, storing them in as newline separated files.
+The current workflow is to parse through the Twitter Archive to harvest relevant tweet IDs, storing them in as newline separated files.
 
 They look something like this:
 
@@ -66,24 +66,24 @@ They look something like this:
 10166529826063xxxxx
 ```
 
-We can then take these IDs and use [DocNow/twarc](https://github.com/DocNow/twarc) to 'rehydrate' the tweets directly from the twitter API.
+We can take these IDs and use [DocNow/twarc](https://github.com/DocNow/twarc) to 'rehydrate' the tweets directly from the Twitter API.
 
-After rehydrating, we leverage one of twarc's utilities to extract all the media urls to a file. These can then be fed into a bulk-download utility such as wget.
+After rehydrating, one of twarc's utilities can extract all the media urls to a file. These can then be fed into a bulk-download utility such as wget.
 
-> *Note*: Twarc requires using the Twitter Developer API and effectively runs as a "Twitter App". While you will always be able to use your own credentials, another longterm goal is to provide access to this tool as a standalone service to avoid this requirement.
+> *Note*: Twarc requires using the Twitter Developer API, and effectively running a "Twitter App". While you will always be able to use your own credentials, a longterm goal for Goliath to provide access to this tool as a standalone service, avoiding this requirement.
 
 
 ### Parsing the archive
 
-Under the `eatgrail` directory within this repository is a python module called `eatgrail.py` that can be ran directly as a script. This module can be told about your Twitter acrchive, and will harvest tweet IDs for you.
+Under the `eatgrail` directory within this repository is a python module called `eatgrail.py`. This module can be ran directly as a script, told about your Twitter Archive, and will harvest tweet IDs for you.
 
-Once you have your Twitter archive you can run eatgrail.py from a commandline/console/terminal as follows:
+Once you have your Twitter Archive you can run eatgrail.py from a commandline/console/terminal as follows:
 
 `$ ./eatgrail/eatgrail.py -extract ./[$PATH_TO_ARCHIVE_ZIP]`
 
 Be sure to replace `[$PATH_TO_ARCHIVE_ZIP]` with the directory and filename of your archive
 
-This script depends on the orginal structure of the acrhive, and will look for the file `data/js/tweets/tweet_index.js` to begin reading in tweets, exporting tweet IDs as it goes.
+This script depends on the orginal structure of the archive, and will look for the file `data/js/tweets/tweet_index.js` to begin reading in tweets, exporting tweet IDs as it goes.
 
 Tweet IDs will be exported to a couple of files matching the pattern `backup_export_[tweettype]_ids.txt`. They will be stored into whatever your console/terminal's current working dirctory is when you run the script.
 
@@ -97,9 +97,9 @@ Due to the way tweets, retweets, and quotetweets work (and how they are encoded 
 
 **When you retweet a tweet**: Internally, you are actually creating your own tweet that encapsulates the other tweet with an "RT @username " appended to the front. This is due to the historical nature of how Twitter implemented the RT'ing functionality into their service. the "RT @username " thing was originally more of a social convention. Twitter then adopted this as a feature in their interface, hiding the RT to maintain backwards compatibility for older clients. I am not certain about older tweets, but in all RTs (since that was implemented) also contain the ID of the originla tweet being Retweeted. I've split these two IDs into buckets. The 'retweet_ids' are your "RT @username " tweets, and the "retweeted_ids" are the IDs of the original tweet being retweeted. *It is important to capture both*, because the retweet_ids tell us when YOU retweeted it, and the retweeted_ids contain the all the retweeted content.
 
-**When you quotetweet a tweet**: The twitter archvie does not currently encode anything about the tweet being quoted. Structurally it is just treated as a link to another tweet in the vein of `https://twitter.com/user/status/[TWEET_ID]`. This is one of the deficiencies in the archive data. I've instructed the script to look for these URLs and read out the embedded Tweet IDs. This is to ensure that all the relevant tweets and context are being captured to match the current day behavior of Twitter's UI. Due to the nature of of the embedded URLs, the script can not distinguish which of the URLs was intended to be the quoted tweet, so it will grab all links to Twitter statuses.
+**When you quotetweet a tweet**: The Twitter archvie does not currently encode anything about the tweet being quoted. Structurally it is just treated as a link to another tweet in the vein of `https://Twitter.com/user/status/[TWEET_ID]`. This is one of the deficiencies in the archive data. I've instructed the script to look for these URLs and read out the embedded Tweet IDs. This is to ensure that all the relevant tweets and context are being captured to match the current day behavior of Twitter's UI. Due to the nature of of the embedded URLs, the script can not distinguish which of the URLs was intended to be the quoted tweet, so it will grab all links to Twitter statuses.
 
-**I do not currently handle moments or polls**: I am not even sure if/how they appear in the twitter archive. Feel free to make pull-requests accounting for them.
+**I do not currently handle moments or polls**: I am not even sure if/how they appear in the Twitter Archive. Feel free to make pull-requests accounting for them.
 
 ### Contents of ID files
 
@@ -171,7 +171,7 @@ It is an evolving list. *Not promises*.
 - [x] export tweets 
 - [x] extract
 - [x] script to comb thru json for relevant tweet IDs
-- [x] use twarc to download the real data from the twitter API / correct images links 
+- [x] use twarc to download the real data from the Twitter API / correct images links 
 - [x] extract correct media file urls
 - [ ] extract user avatars 
 - [x] download images
@@ -182,7 +182,7 @@ It is an evolving list. *Not promises*.
   - [x] gather tweet IDs
   - [x] gather retweet IDs (older RT @username bla bla)
   - [x] gather retweeted tweet IDs 
-  - [x] gather quotetweet IDs (technically just links back to twitter.com/)
+  - [x] gather quotetweet IDs (technically just links back to Twitter.com/)
   - [x] gather "in reply to" (for recreating context)
   - [x] deduplication of IDs
 - [x] Consume archive .zip files directly
