@@ -7,7 +7,7 @@ by @ultimape
 This tool consumes the twitter backup/export (codenamed 'Grailbird') and poops out tweet IDs.
 
 Part of "Goliath Birdeater" A birdsite spider; For backing up your external brain.
-Eats backups, shits tweets
+Eats backups, poops tweets
 
 The Goliath bird-eating spider;
     "Despite its name, it is rare for the Goliath birdeater to actually prey on birds; [...]
