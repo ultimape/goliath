@@ -5,7 +5,7 @@ Goliath Birdeater
 by @ultimape
 
 A birdsite spider; For backing up your external brain.
-Eats backups, shits tweets
+Eats backups, poops tweets
 
 The Goliath bird-eating spider;
     "Despite its name, it is rare for the Goliath birdeater to actually prey on birds; [...]
@@ -14,12 +14,6 @@ The Goliath bird-eating spider;
     https://en.wikipedia.org/wiki/Goliath_birdeater
 
 Site: murmurology.wovensoup.com
-
-This is free and unencumbered software released into the public domain.
-Anyone is free to copy, modify, publish, use, compile, sell, or
-distribute this software, either in source code form or as a compiled
-binary, for any purpose, commercial or non-commercial, and by any
-means. For more information, please refer to <http://unlicense.org/>
 '''
 
 import argparse
