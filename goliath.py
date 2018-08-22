@@ -120,6 +120,9 @@ def extract_media_links_to_file(tweet, file):
 
 
 def get_filehandle(filepool, pool, filename):
+
+    # TODO the file pool might be a good candidate for a LRU
+
     try:
         return maybe_open_a_file(filepool[pool], filename)
     except OSError as e:
@@ -165,18 +168,12 @@ def download_json_data(TWEETS_LOCATION, is_dry_run):
     # but in a way that doesn't risk corrupting the filesystem
     ascii_pattern = re.compile('[^a-zA-Z0-9_]+')
 
+    # We use a dict to store filenames of users we write to
+    # this lets us track all the open files to close them later
+    # it also gives us a way to check if a file is open already or not
+    # this avoids continuously running the open() command, speading this up a bit for large tweet collections
     filepool = dict()
-
-    # We use a dict to store filenames of users we write to
-    # this lets us track all the open files to close them later
-    # it also gives us a way to check if a file is open already or not
-    # this avoids continuously running the open() command, speading this up a bit for large tweet collections
     filepool["tweet_files"] = dict()
-
-    # We use a dict to store filenames of users we write to
-    # this lets us track all the open files to close them later
-    # it also gives us a way to check if a file is open already or not
-    # this avoids continuously running the open() command, speading this up a bit for large tweet collections
     filepool["media_url_files"] = dict()
 
     print("Beginning twarc tweet download")
