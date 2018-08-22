@@ -114,9 +114,49 @@ def extract_media_links_to_file(tweet, file):
                     media_urls.add(v['url'])
 
     for url in media_urls:
-        file.write("%s\n" % (type))
+        file.write("%s\n" % url)
 
     return len(media_urls)
+
+
+def get_filehandle(filepool, pool, filename):
+    try:
+        return maybe_open_a_file(filepool[pool], filename)
+    except OSError as e:
+        if e.errno == 24:  # max file descriptors
+            print("    Max open files reached while trying to open %s,\n      closing open files (may take a moment)" % filename)
+            for open_pool in filepool:
+                close_all_open_handles(filepool[open_pool])
+            return maybe_open_a_file(filepool[pool], filename)
+        else:
+            raise
+
+
+def create_new_filehandle(filepool, pool, filename):
+    filehandle = get_filehandle(filepool, pool, filename)
+    filehandle.truncate(0)
+    filehandle.flush()
+    return filehandle
+
+
+def maybe_open_a_file(file_set, filename):
+    try:
+        # see if a file is not yet opened
+        if filename in file_set:
+            if file_set[filename].closed:
+                # if so, open it
+                file_set[filename] = open(filename, 'a')
+            else:
+                # file is already open, so do nothing
+                pass
+        else:
+            # filename isn't in set, so it needs to be made
+            file_set[filename] = open(filename, 'a')
+        # return the opened file
+        return file_set[filename]
+    except:
+        print("  Was unable to open %s" % filename)
+        raise
 
 
 def download_json_data(TWEETS_LOCATION, is_dry_run):
@@ -125,17 +165,19 @@ def download_json_data(TWEETS_LOCATION, is_dry_run):
     # but in a way that doesn't risk corrupting the filesystem
     ascii_pattern = re.compile('[^a-zA-Z0-9_]+')
 
-    # We use a dict to store filenames of users we write to
-    # this lets us track all the open files to close them later
-    # it also gives us a way to check if a file is open already or not
-    # this avoids continuously running the open() command, speading this up a bit for large tweet collections
-    tweet_files = dict()
+    filepool = dict()
 
     # We use a dict to store filenames of users we write to
     # this lets us track all the open files to close them later
     # it also gives us a way to check if a file is open already or not
     # this avoids continuously running the open() command, speading this up a bit for large tweet collections
-    media_url_files = dict()
+    filepool["tweet_files"] = dict()
+
+    # We use a dict to store filenames of users we write to
+    # this lets us track all the open files to close them later
+    # it also gives us a way to check if a file is open already or not
+    # this avoids continuously running the open() command, speading this up a bit for large tweet collections
+    filepool["media_url_files"] = dict()
 
     print("Beginning twarc tweet download")
     try:
@@ -171,10 +213,10 @@ def download_json_data(TWEETS_LOCATION, is_dry_run):
 
             # generate a filename programatically
             filename_pre = "%s_%s" % (safe_userid, safe_username)
-            filename = "tweets/%s/%s_twarc_output.jsonl" % (filename_pre, filename_pre)
-            media_urls_filename = "media/%s/%s_index.jsonl" % (filename_pre, filename_pre)
+            tweet_data_filename = "tweets/%s/%s_twarc_output.jsonl" % (filename_pre, filename_pre)
+            media_urls_filename = "media/%s/%s_media_to_download.txt" % (filename_pre, filename_pre)
 
-            if filename not in tweet_files:
+            if tweet_data_filename not in filepool["tweet_files"]:
                 user_count += 1
 
                 if not os.path.exists('tweets/'+filename_pre):
@@ -183,87 +225,19 @@ def download_json_data(TWEETS_LOCATION, is_dry_run):
                 if not os.path.exists('media/'+filename_pre):
                     os.makedirs('media/' + filename_pre)
 
+                create_new_filehandle(filepool, "tweet_files", tweet_data_filename)
+                create_new_filehandle(filepool, "media_url_files", media_urls_filename)
+
                 #print("  creating file for %s (%s)" % (tweet["user"]["screen_name"], tweet["user"]["id"]))
-                try:
-                    if filename not in tweet_files:
-                        tweet_files[filename] = open(filename, 'a')
-                    else:
-                        if tweet_files[filename].closed:
-                            tweet_files[filename] = open(filename, 'a')
-                except:
-                    print("  exception encountered while trying to create %s, closing open files (may take a moment)" % filename)
-                    close_all_open_handles(tweet_files)
-                    close_all_open_handles(media_url_files)
-                finally:
-                    try:
-                        if filename not in tweet_files:
-                            tweet_files[filename] = open(filename, 'a')
-                        else:
-                            if tweet_files[filename].closed:
-                                tweet_files[filename] = open(filename, 'a')
 
-                    except:
-                        print("Can not open %s" % filename)
-                        raise
-                tweet_files[filename].truncate()
-
-                try:
-                    if media_urls_filename not in media_url_files:
-                        media_url_files[media_urls_filename] = open(media_urls_filename, 'a+')
-                    else:
-                        if media_url_files[media_urls_filename].closed:
-                            media_url_files[media_urls_filename] = open(media_urls_filename, 'a+')
-                except:
-                    print("  exception encountered while trying to create %s, closing open files (may take a moment)" % filename)
-                    close_all_open_handles(tweet_files)
-                    close_all_open_handles(media_url_files)
-                finally:
-                    try:
-                        if media_urls_filename not in media_url_files:
-                            media_url_files[media_urls_filename] = open(media_urls_filename, 'a+')
-                        else:
-                            if media_url_files[media_urls_filename].closed:
-                                media_url_files[media_urls_filename] = open(media_urls_filename, 'a+')
-                    except:
-                        print("  Can not open %s" % media_urls_filename)
-                        raise
-                media_url_files[media_urls_filename].truncate()
-
-            try:
-                if tweet_files[filename].closed:
-                    tweet_files[filename] = open(filename, 'a')
-            except:
-                print("  exception encountered while trying to open %s, closing open files (may take a moment)" % filename)
-                close_all_open_handles(tweet_files)
-                close_all_open_handles(media_url_files)
-            finally:
-                try:
-                    if tweet_files[filename].closed:
-                        tweet_files[filename] = open(filename, 'a')
-                except:
-                    print("  Can not open %s" % filename)
-                    raise
+            tweet_file = get_filehandle(filepool, "tweet_files", tweet_data_filename)
+            media_url_file = get_filehandle(filepool, "media_url_files", media_urls_filename)
 
             # store the json we got from the tweet
-            tweet_files[filename].write("%s\n" % tweet_json)
+            tweet_file.write("%s\n" % tweet_json)
             tweet_count += 1
 
-            try:
-                if media_url_files[media_urls_filename].closed:
-                    media_url_files[media_urls_filename] = open(media_urls_filename, 'a+')
-            except:
-                print("  exception encountered while trying to open %s, closing open files (may take a moment)" % media_urls_filename)
-                close_all_open_handles(tweet_files)
-                close_all_open_handles(media_url_files)
-            finally:
-                try:
-                    if media_url_files[media_urls_filename].closed:
-                        media_url_files[media_urls_filename] = open(media_urls_filename, 'a+')
-                except:
-                    print("Can not open %s" % media_urls_filename)
-                    raise
-
-            media_count += extract_media_links_to_file(tweet, media_url_files[media_urls_filename])
+            media_count += extract_media_links_to_file(tweet, media_url_file)
 
             # Periodically display counts of things
 
@@ -301,8 +275,8 @@ def download_json_data(TWEETS_LOCATION, is_dry_run):
         # don't forget to close all the open handles (since we aren't using 'with open')
         print("Stored: %s Tweets, From %s Users, and captured %s Media URLs" % (tweet_count, user_count, media_count))
         print("Done downloading tweets, Closing files (may take a moment)")
-        close_all_open_handles(tweet_files)
-        close_all_open_handles(media_url_files)
+        close_all_open_handles(filepool["tweet_files"])
+        close_all_open_handles(filepool["media_url_files"])
 
 
 # parse and strip twitter backup/export
