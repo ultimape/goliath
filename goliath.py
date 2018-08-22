@@ -71,14 +71,55 @@ def main():
     # Set Up
     args = parse_arguments()
 
+    is_dry_run = False
     if args.dry_run is not None:
         print("dry-run detected")
+        is_dry_run = True
 
     if args.TWITTER_EXPORT_LOCATION is not None:
         print("Extract Twitter Export Mode Detected\n\t[value is \"%s\"]" % args.TWITTER_EXPORT_LOCATION)
         graileater.parse_twitter_export_for_ids(args.TWITTER_EXPORT_LOCATION)
 
-    print(args.TWEETS_LOCATION)
+    if args.TWEETS_LOCATION is not None:
+        print("Download Twitter Data Mode Detected\n\t[value is \"%s\"]" % args.TWEETS_LOCATION)
+        download_json_data(args.TWEETS_LOCATION, is_dry_run)
+
+
+def close_all_open_handles(file_set):
+    for filename in file_set:
+        if not file_set[filename].closed:
+            #print("  closing %s" % filename)
+            file_set[filename].close()
+
+
+def extract_media_links_to_file(tweet, file):
+
+    # sometimes the urls are duplicates, so using a set lets us keeps only one copy
+    media_urls = set()
+
+    # media extraction done via modified version of DocNow/Twarc/utils/media_urls.py (file was licened as MIT)
+    if 'media' in tweet['entities']:
+        for media in tweet['entities']['media']:
+            if media['type'] == 'photo':
+                media_urls.add(media['media_url_https'])
+
+    if 'extended_entities' in tweet and 'media' in tweet['extended_entities']:
+        for media in tweet['extended_entities']['media']:
+
+            if media['type'] == 'animated_gif':
+                media_urls.add(media['media_url_https'])
+
+            if 'video_info' in media:
+                for v in media['video_info']['variants']:
+                    media_urls.add(v['url'])
+
+    for url in media_urls:
+        file.write("%s\n" % (type))
+
+    return len(media_urls)
+
+
+def download_json_data(TWEETS_LOCATION, is_dry_run):
 
     # TODO: update this to work with unicode characters in usernames (forign languages?),
     # but in a way that doesn't risk corrupting the filesystem
@@ -118,7 +159,7 @@ def main():
         should_display_user_count = False
         should_display_media_count = False
 
-        for tweet in twarc.hydrate(open(args.TWEETS_LOCATION)):
+        for tweet in twarc.hydrate(open(TWEETS_LOCATION)):
             tweet_json = json.dumps(tweet)
 
             # writing to the file system? make sure the shit isn't going to overwrite /etc/passwd
@@ -131,7 +172,6 @@ def main():
             # generate a filename programatically
             filename_pre = "%s_%s" % (safe_userid, safe_username)
             filename = "tweets/%s/%s_twarc_output.jsonl" % (filename_pre, filename_pre)
-
             media_urls_filename = "media/%s/%s_index.jsonl" % (filename_pre, filename_pre)
 
             if filename not in tweet_files:
@@ -263,39 +303,6 @@ def main():
         print("Done downloading tweets, Closing files (may take a moment)")
         close_all_open_handles(tweet_files)
         close_all_open_handles(media_url_files)
-
-
-def close_all_open_handles(file_set):
-    for filename in file_set:
-        if not file_set[filename].closed:
-            #print("  closing %s" % filename)
-            file_set[filename].close()
-
-
-def extract_media_links_to_file(tweet, file):
-    media_count = 0
-    # media extraction done via modified version of DocNow/Twarc/utils/media_urls.py (file was licened as MIT)
-    if 'media' in tweet['entities']:
-        for media in tweet['entities']['media']:
-            if media['type'] == 'photo':
-                file.write(media['media_url_https'])
-                file.write('\n')
-                media_count += 1
-
-    if 'extended_entities' in tweet and 'media' in tweet['extended_entities']:
-        for media in tweet['extended_entities']['media']:
-
-            if media['type'] == 'animated_gif':
-                file.write(media['media_url_https'])
-                file.write('\n')
-                media_count += 1
-
-            if 'video_info' in media:
-                for v in media['video_info']['variants']:
-                    file.write(v['url'])
-                    file.write('\n')
-                    media_count += 1
-    return media_count
 
 
 # parse and strip twitter backup/export
