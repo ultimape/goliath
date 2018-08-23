@@ -209,6 +209,7 @@ It is an evolving list. *Not promises*.
   - [ ] No storing of tweet data beyond nessiary to offer download, delete after done
 - [ ] A standalone offline backup viewer for Mastodon flavored ActivityPub
   - [ ] Must have thread support!
+  - [ ] Markdown? (for crosss publishing to Are.na / Write.as)
   - [ ] Extensive Search Functionality
 - [ ] Safe ways to access tweets that aren't part of your backup, but without requiring access to Twitter
   - [ ] Encrypted Storage
