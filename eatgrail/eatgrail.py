@@ -45,13 +45,14 @@ import time
 from urllib.parse import urlparse
 
 
-# TODO: pass this around as a struct-like object?
-tweet_id_filename = "backup_export_tweet_ids.txt"
-retweet_id_filename = "backup_export_retweet_ids.txt"
-retweeted_id_filename = "backup_export_retweeted_ids.txt"
-quotetweet_id_filename = "backup_export_quotetweet_ids.txt"
-replyto_id_filename = "backup_export_replyto_ids.txt"
-all_ids_filename = "backup_export_all_ids.txt"
+output_files = dict()
+output_files["tweet_id_filename"] = "export_tweet_ids.txt"
+output_files["retweet_id_filename"] = "export_retweet_ids.txt"
+output_files["retweeted_id_filename"] = "export_retweeted_ids.txt"
+output_files["quotetweet_id_filename"] = "export_quotetweet_ids.txt"
+output_files["replyto_id_filename"] = "export_replyto_ids.txt"
+output_files["all_ids_filename"] = "export_all_ids.txt"
+output_files["user_details_filename"] = "export_user_details.txt"
 
 
 # Handles configuration of command line arguments
@@ -67,25 +68,50 @@ def main():
     # Set Up
     args = parse_arguments()
 
-    print("Extract Twitter Export Mode Detected\n\t[value is \"%s\"]" % args.TWITTER_EXPORT_LOCATION)
-    parse_twitter_export_for_ids(args.TWITTER_EXPORT_LOCATION)
+    EXPORT_LOCATION = str(args.TWITTER_EXPORT_LOCATION).strip().rstrip("/")
+
+    parse_twitter_export(EXPORT_LOCATION)
+
+
+def parse_twitter_export(EXPORT_LOCATION):
+    EXPORT_LOCATION = EXPORT_LOCATION.strip().rstrip("/")
+
+    print("Extract Twitter Export Mode Detected\n\t[value is \"%s\"]" % EXPORT_LOCATION)
+
+    is_zip_archive = check_zip(EXPORT_LOCATION)
+
+    filename_prefix = parse_archive_user_details(EXPORT_LOCATION, is_zip_archive)
+    for filename in output_files:
+        output_files[filename] = adjust_filename(filename_prefix, filename)
+
+    with open(output_files["user_details_filename"], 'a') as output:
+        output.truncate(0)
+        output.write(str(filename_prefix.split('_')))
+        output.write('\n')
+        output.close()
+
+    parse_twitter_export_for_ids(EXPORT_LOCATION, is_zip_archive)
 
     # Deduplicate all the ids among the files
     # Since a large number of tweets may be redundantly copied due to having been used in multiple retweets/quotetweets/replies
     print("Deduplicating IDs")
     dedupe_ids()
 
-    print("Done!")
+    print("Done Parsing Twitter Export!")
 
 
-# Takes a twitter export file and parses out relevant tweet IDs for processing later
-def parse_twitter_export_for_ids(EXPORT_LOCATION):
+def adjust_filename(prefix, filename):
+    newname = "%s_%s" % (prefix, filename)
+    return newname
 
-    EXPORT_LOCATION = EXPORT_LOCATION.strip().rstrip("/")
 
+def check_zip(EXPORT_LOCATION):
     # some sanity checks for the export location
     is_zip_archive = test_if_zip_archive(EXPORT_LOCATION)
     is_corrupt = test_if_zip_archive_corrupt(EXPORT_LOCATION)
+
+    if is_zip_archive:
+        print("  Archive is a Zip File.")
 
     if is_zip_archive and is_corrupt:
         print("Could not open the Archive Zip!")
@@ -94,8 +120,67 @@ def parse_twitter_export_for_ids(EXPORT_LOCATION):
         print("")
         sys.exit(-1)
 
+    return is_zip_archive
+
+
+def parse_archive_user_details(EXPORT_LOCATION, is_zip_archive):
+    # TODO: update this to work with unicode characters in usernames (forign languages?),
+    # but in a way that doesn't risk corrupting the filesystem
+    ascii_pattern = re.compile('[^a-zA-Z0-9_]+')
+
+    user_details = load_archive_user_details(EXPORT_LOCATION, is_zip_archive)
+
+    unsafe_username = user_details['screen_name']
+    safe_username = ascii_pattern.sub('', str(unsafe_username))
+
+    unsafe_userid = user_details['id']
+    safe_user_id = ascii_pattern.sub('', str(unsafe_userid))
+
+    prefix = "%s_%s" % (safe_user_id, safe_username)
+
+    return prefix
+
+
+def load_archive_user_details(EXPORT_LOCATION, is_zip_archive):
     if is_zip_archive:
-        print("  Archive is a Zip File.")
+        try:
+            with zipfile.ZipFile(EXPORT_LOCATION) as tweet_archive:
+
+                details_filename = "data/js/user_details.js"
+                index_str = tweet_archive.read(details_filename).decode('utf-8')
+                index_str = re.sub(r'var user_details =', '', index_str)
+                print("    loaded \"%s\" from Zip Archive" % details_filename)
+                return json.loads(index_str)
+
+        except Exception as e:
+            print("Could not open the Archive Zip!")
+            print("    (location:\"%s\")" % EXPORT_LOCATION)
+            print("  (Exception: %s)" % str(e))
+            print("")
+            sys.exit(-1)
+
+    else:
+        details_filename = EXPORT_LOCATION + "/data/js/user_details.js"
+        try:
+            with open(details_filename) as index_file:
+                index_str = index_file.read()
+                index_str = re.sub(r'var user_details =', '', index_str)
+                print("    loaded \"%s\"" % details_filename)
+                return json.loads(index_str)
+
+        except Exception as e:
+            print("Could not open the data from the archive!")
+            print("    (location:\"%s\")" % details_filename)
+            print("Please ensure the location exists, and modify the -export parameter as nessisary")
+            print("  (Exception: %s)" % str(e))
+            print("")
+            sys.exit(-1)
+
+
+# Takes a twitter export file and parses out relevant tweet IDs for processing later
+def parse_twitter_export_for_ids(EXPORT_LOCATION, is_zip_archive):
+
+    EXPORT_LOCATION = EXPORT_LOCATION.strip().rstrip("/")
 
     print("  Attempting to load tweet export index.")
     tweets_by_month = load_tweet_export_index(EXPORT_LOCATION, is_zip_archive)
@@ -230,20 +315,20 @@ def extract_tweets_from_tweet_export(tweets_by_month, EXPORT_LOCATION, is_zip_ar
     total_replyto_count = 0
 
     # clear out existing tweets to start from fresh (avoids duplicates if ran multiple times)
-    clear_file(tweet_id_filename)
-    clear_file(retweet_id_filename)
-    clear_file(retweeted_id_filename)
-    clear_file(quotetweet_id_filename)
-    clear_file(replyto_id_filename)
+    clear_file(output_files["tweet_id_filename"])
+    clear_file(output_files["retweet_id_filename"])
+    clear_file(output_files["retweeted_id_filename"])
+    clear_file(output_files["quotetweet_id_filename"])
+    clear_file(output_files["replyto_id_filename"])
 
     # Loop 1: Go through all the months
     # ---------------------------------
 
-    tweet_ids_file = open(tweet_id_filename, 'a')
-    retweet_ids_file = open(retweet_id_filename, 'a')
-    retweeted_ids_file = open(retweeted_id_filename, 'a')
-    quotetweet_ids_file = open(quotetweet_id_filename, 'a')
-    replyto_ids_file = open(replyto_id_filename, 'a')
+    tweet_ids_file = open(output_files["tweet_id_filename"], 'a')
+    retweet_ids_file = open(output_files["retweet_id_filename"], 'a')
+    retweeted_ids_file = open(output_files["retweeted_id_filename"], 'a')
+    quotetweet_ids_file = open(output_files["quotetweet_id_filename"], 'a')
+    replyto_ids_file = open(output_files["replyto_id_filename"], 'a')
 
     try:
         for date in tweets_by_month:
@@ -403,11 +488,11 @@ def dedupe_ids():
     # derived from technqiues in https://stackoverflow.com/questions/1215208/how-might-i-remove-duplicate-lines-from-a-file
 
     # Initialize
-    tweet_id_files = [tweet_id_filename,
-                      retweet_id_filename,
-                      retweeted_id_filename,
-                      quotetweet_id_filename,
-                      replyto_id_filename]
+    tweet_id_files = [output_files["tweet_id_filename"],
+                      output_files["retweet_id_filename"],
+                      output_files["retweeted_id_filename"],
+                      output_files["quotetweet_id_filename"],
+                      output_files["replyto_id_filename"]]
 
     tweet_id_sets = dict()
     all_tweet_ids = set()
@@ -422,42 +507,48 @@ def dedupe_ids():
             all_tweet_ids |= tweet_id_sets[filename]
 
     # store all the ids in one file
-    clear_file(all_ids_filename)
-    with open(all_ids_filename, 'a') as all_ids_file:
+    clear_file(output_files["all_ids_filename"])
+    with open(output_files["all_ids_filename"], 'a') as all_ids_file:
         for tweet_id in all_tweet_ids:
             all_ids_file.write("%s\n" % tweet_id)
         all_ids_file.close()
 
-    print("  Number of basic tweets: %s" % len(tweet_id_sets[tweet_id_filename]))
+    print("  Number of basic tweets: %s" % len(tweet_id_sets[output_files["tweet_id_filename"]]))
 
     # progressively remove the tweets already exist in one file, they don't need to be downloaded multiple times.
     print("  Remove redundant tweets from id files.")
-    retweeted_id_count = len(tweet_id_sets[retweeted_id_filename])
-    quotetweet_id_count = len(tweet_id_sets[quotetweet_id_filename])
-    replyto_id_count = len(tweet_id_sets[replyto_id_filename])
-    tweet_id_count = len(tweet_id_sets[tweet_id_filename])
-    retweet_id_count = len(tweet_id_sets[retweet_id_filename])
+    retweeted_id_count = len(tweet_id_sets[output_files["retweeted_id_filename"]])
+    quotetweet_id_count = len(tweet_id_sets[output_files["quotetweet_id_filename"]])
+    replyto_id_count = len(tweet_id_sets[output_files["replyto_id_filename"]])
+    tweet_id_count = len(tweet_id_sets[output_files["tweet_id_filename"]])
+    retweet_id_count = len(tweet_id_sets[output_files["retweet_id_filename"]])
 
     # remove tweet ids from retweeted tweet ids , quotetweet tweet ids, and reply_to tweet ids
     print("    removing tweet ids from retweeted, quotetweeted and reply to lists")
-    tweet_id_sets[retweeted_id_filename] = tweet_id_sets[retweeted_id_filename] - tweet_id_sets[tweet_id_filename]
-    tweet_id_sets[quotetweet_id_filename] = tweet_id_sets[quotetweet_id_filename] - tweet_id_sets[tweet_id_filename]
-    tweet_id_sets[replyto_id_filename] = tweet_id_sets[replyto_id_filename] - tweet_id_sets[tweet_id_filename]
-    print("      retweeted reduction: %s, quotetweet reduction: %s, reply_to reduction: %s" % (retweeted_id_count - len(tweet_id_sets[retweeted_id_filename]),
-                                                                                               quotetweet_id_count - len(tweet_id_sets[quotetweet_id_filename]),
-                                                                                               replyto_id_count - len(tweet_id_sets[replyto_id_filename])))
+    tweet_id_sets[output_files["retweeted_id_filename"]] = tweet_id_sets[output_files["retweeted_id_filename"]] - \
+        tweet_id_sets[output_files["tweet_id_filename"]]
+    tweet_id_sets[output_files["quotetweet_id_filename"]] = tweet_id_sets[output_files["quotetweet_id_filename"]] - \
+        tweet_id_sets[output_files["tweet_id_filename"]]
+    tweet_id_sets[output_files["replyto_id_filename"]] = tweet_id_sets[output_files["replyto_id_filename"]] - tweet_id_sets[output_files["tweet_id_filename"]]
+    print("      retweeted reduction: %s, quotetweet reduction: %s, reply_to reduction: %s" % (retweeted_id_count - len(tweet_id_sets[output_files["retweeted_id_filename"]]),
+                                                                                               quotetweet_id_count -
+                                                                                               len(tweet_id_sets[output_files["quotetweet_id_filename"]]),
+                                                                                               replyto_id_count - len(tweet_id_sets[output_files["replyto_id_filename"]])))
 
     # remove retweeted tweet ids from quotetweets and reply_to
     print("    removing retweeted ids from quotetweeted and reply_to lists")
-    tweet_id_sets[quotetweet_id_filename] = tweet_id_sets[quotetweet_id_filename] - tweet_id_sets[retweeted_id_filename]
-    tweet_id_sets[replyto_id_filename] = tweet_id_sets[replyto_id_filename] - tweet_id_sets[retweeted_id_filename]
-    print("      quotetweet reduction: %s, reply_to reduction: %s" % (quotetweet_id_count - len(tweet_id_sets[quotetweet_id_filename]),
-                                                                      replyto_id_count - len(tweet_id_sets[replyto_id_filename])))
+    tweet_id_sets[output_files["quotetweet_id_filename"]] = tweet_id_sets[output_files["quotetweet_id_filename"]] - \
+        tweet_id_sets[output_files["retweeted_id_filename"]]
+    tweet_id_sets[output_files["replyto_id_filename"]] = tweet_id_sets[output_files["replyto_id_filename"]] - \
+        tweet_id_sets[output_files["retweeted_id_filename"]]
+    print("      quotetweet reduction: %s, reply_to reduction: %s" % (quotetweet_id_count - len(tweet_id_sets[output_files["quotetweet_id_filename"]]),
+                                                                      replyto_id_count - len(tweet_id_sets[output_files["replyto_id_filename"]])))
 
     # remove quotetweet tweet ids from reply_to  tweet ids
     print("    removing quotetweeted ids from reply_to lists")
-    tweet_id_sets[replyto_id_filename] = tweet_id_sets[replyto_id_filename] - tweet_id_sets[quotetweet_id_filename]
-    print("      reply_to reduction: %s" % (replyto_id_count - len(tweet_id_sets[replyto_id_filename])))
+    tweet_id_sets[output_files["replyto_id_filename"]] = tweet_id_sets[output_files["replyto_id_filename"]] - \
+        tweet_id_sets[output_files["quotetweet_id_filename"]]
+    print("      reply_to reduction: %s" % (replyto_id_count - len(tweet_id_sets[output_files["replyto_id_filename"]])))
 
     # save out all dedupliacted tweet id data
     print("  Final export")
