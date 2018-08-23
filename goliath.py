@@ -78,7 +78,7 @@ def main():
 
     if args.TWITTER_EXPORT_LOCATION is not None:
         print("Extract Twitter Export Mode Detected\n\t[value is \"%s\"]" % args.TWITTER_EXPORT_LOCATION)
-        graileater.parse_twitter_export_for_ids(args.TWITTER_EXPORT_LOCATION)
+        graileater.parse_twitter_export(args.TWITTER_EXPORT_LOCATION)
 
     if args.TWEETS_LOCATION is not None:
         print("Download Twitter Data Mode Detected\n\t[value is \"%s\"]" % args.TWEETS_LOCATION)
