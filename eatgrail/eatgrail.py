@@ -82,11 +82,11 @@ def parse_twitter_export(EXPORT_LOCATION):
 
     filename_prefix = parse_archive_user_details(EXPORT_LOCATION, is_zip_archive)
     for filename in output_files:
-        output_files[filename] = adjust_filename(filename_prefix, filename)
+        output_files[filename] = adjust_filename(filename_prefix, output_files[filename])
 
     with open(output_files["user_details_filename"], 'a') as output:
         output.truncate(0)
-        output.write(str(filename_prefix.split('_')))
+        output.write(str(filename_prefix.split('_')[0]))
         output.write('\n')
         output.close()
 
