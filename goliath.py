@@ -21,6 +21,7 @@ import json
 import re
 import sys
 import time
+import copy
 from urllib.parse import urlparse
 from twarc import Twarc
 import os
@@ -197,6 +198,15 @@ def download_user_details(user_ids):
     # perform a lookup to populate ids as json details
     print("  Looking up details for %s accounts" % len(user_id_all))
     for user_details_json in twarc.user_lookup(ids=list(user_id_all), id_type="user_id"):
+
+        # remove unessisary status entry
+        if 'status' in user_details_json:
+            del user_details_json['status']
+
+        # remove redundant fields
+        user_details_json = scour_dict_for_str_dupes(user_details_json)
+
+        # store for later processing
         user_id_json_map[str(user_details_json['id_str'])] = user_details_json
 
     # TODO: the logic here is odd
@@ -259,6 +269,36 @@ def download_user_details(user_ids):
         master_details_file.close()
 
 
+# This recursively walks the json object to remove redundant fields if the data is the same
+#    since we don't need both the integer version and the string version in the output
+#    I noticed in some of the backups, the integer version is actually broken because of 32bit/64bit discrepencies.
+#    so it is potentially junk data anyway depending on the where we aquired the archive.
+def scour_dict_for_str_dupes(dict_entity):
+    # create a clone of the entity object to manipulate,
+    # this avoids RuntimeError: dictionary changed size during iteration
+    new_dict = copy.deepcopy(dict_entity)
+
+    for dict_key, dict_value in dict_entity.items():
+        if isinstance(dict_value, dict):
+            new_dict[dict_key] = scour_dict_for_str_dupes(dict_value)
+        else:
+            # if its an integer value
+            if isinstance(dict_value, int):
+
+                # generate the expected key to look for
+                check_for_key = "%s_%s" % (str(dict_key), "str")
+
+                # if the generated key is in the dict
+                if check_for_key in dict_entity:
+                    # compare their values to see if they are identical
+                    dict_value_as_string = str(dict_value)
+                    existing_string = dict_entity[check_for_key]
+                    if dict_value_as_string == existing_string:
+                        # if they are identical, remove this key as redundant
+                        del new_dict[dict_key]
+    return new_dict
+
+
 def download_json_data(TWEETS_LOCATION, is_dry_run):
 
     # We use a dict to store filenames of users we write to
@@ -298,13 +338,13 @@ def download_json_data(TWEETS_LOCATION, is_dry_run):
         user_ids = set()
 
         for tweet in twarc.hydrate(open(TWEETS_LOCATION)):
-            tweet_json = json.dumps(tweet)
+            tweet = scour_dict_for_str_dupes(tweet)
 
             # writing to the file system? make sure the shit isn't going to overwrite /etc/passwd
             unsafe_username = tweet["user"]["screen_name"]
             safe_username = ascii_pattern.sub('', str(unsafe_username))
 
-            unsafe_userid = tweet["user"]["id"]
+            unsafe_userid = tweet["user"]["id_str"]
             safe_userid = ascii_pattern.sub('', str(unsafe_userid))
 
             # store user ID for lookup later
@@ -327,13 +367,13 @@ def download_json_data(TWEETS_LOCATION, is_dry_run):
                 create_new_filehandle(filepool, "tweet_files", tweet_data_filename)
                 create_new_filehandle(filepool, "media_url_files", media_urls_filename)
 
-                # print("  creating file for %s (%s)" % (tweet["user"]["screen_name"], tweet["user"]["id"]))
+                # print("  creating file for %s (%s)" % (tweet["user"]["screen_name"], tweet["user"]["id_str"]))
 
             tweet_file = get_filehandle(filepool, "tweet_files", tweet_data_filename)
             media_url_file = get_filehandle(filepool, "media_url_files", media_urls_filename)
 
             # store the json we got from the tweet
-            tweet_file.write("%s\n" % tweet_json)
+            tweet_file.write("%s\n" % json.dumps(tweet))
             tweet_count += 1
 
             media_count += extract_media_links_to_file(tweet, media_url_file)
@@ -369,7 +409,7 @@ def download_json_data(TWEETS_LOCATION, is_dry_run):
             if should_display_media_count and not media_count % 100:
                 print("Stored: %s Tweets, From %s Users, and captured %s Media URLs" % (tweet_count, user_count, media_count))
 
-            # print("%s by %s (%s)" % (tweet["id"], tweet["user"]["screen_name"], tweet["user"]["id"]))
+            # print("%s by %s (%s)" % (tweet["id_str"], tweet["user"]["screen_name"], tweet["user"]["id_str"]))
     finally:
         # don't forget to close all the open handles (since we aren't using 'with open')
         print("Stored: %s Tweets, From %s Users, and captured %s Media URLs" % (tweet_count, user_count, media_count))
