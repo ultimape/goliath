@@ -37,6 +37,10 @@ with open("twarc_creds.secret") as secrets_file:
 
 twarc = Twarc(twitter_consumer_key, twitter_consumer_secret, twitter_access_token, twitter_access_token_secret)
 
+# TODO: update this to work with unicode characters in usernames (forign languages?),
+# but in a way that doesn't risk corrupting the filesystem
+ascii_pattern = re.compile('[^a-zA-Z0-9_]+')
+
 
 # Handles configuration of command line arguments
 def parse_arguments():
@@ -88,7 +92,7 @@ def main():
 def close_all_open_handles(file_set):
     for filename in file_set:
         if not file_set[filename].closed:
-            #print("  closing %s" % filename)
+            # print("  closing %s" % filename)
             file_set[filename].close()
 
 
@@ -162,11 +166,100 @@ def maybe_open_a_file(file_set, filename):
         raise
 
 
-def download_json_data(TWEETS_LOCATION, is_dry_run):
+def download_user_details(user_ids):
 
-    # TODO: update this to work with unicode characters in usernames (forign languages?),
-    # but in a way that doesn't risk corrupting the filesystem
-    ascii_pattern = re.compile('[^a-zA-Z0-9_]+')
+    print("  creating /user_details/ directory")
+    if not os.path.exists('user_details'):
+        os.makedirs('user_details')
+
+    user_details = dict()
+    user_id_all = set()
+    user_id_json_map = dict()
+
+    # gather all of the follower/following ids'
+    print("gathering user details")
+    for user_id in user_ids:
+
+        user_id_all.add(str(user_id))
+
+    #    print("  getting followers for %s" % (user_id,))
+    #    follower_set = set()
+    #    for follower_id in twarc.follower_ids(user_id):
+    #        follower_set.add(str(follower_id))
+    #
+    #    print("  getting following/friends for %s" % (user_id,))
+    #    following_set = set()
+    #    for following_id in twarc.friend_ids(user_id):
+    #        following_set.add(str(following_id))
+    #
+        user_details[str(user_id)] = dict()
+
+    # perform a lookup to populate ids as json details
+    print("  Looking up details for %s accounts" % len(user_id_all))
+    for user_details_json in twarc.user_lookup(ids=list(user_id_all), id_type="user_id"):
+        user_id_json_map[str(user_details_json['id_str'])] = user_details_json
+
+    # TODO: the logic here is odd
+
+    print("  Exporting Data")
+    all_user_details_filename = "user_details/all_user_details.jsonl"
+    with open(all_user_details_filename, 'a', encoding="utf-8-sig") as master_details_file:
+        master_details_file.truncate(0)
+
+        for user_details_id in user_id_json_map:
+
+            user_details_json = user_id_json_map[user_details_id]
+
+            # store the tweet json to the master file so we can look up on a per-tweet basis
+            master_details_file.write(str(user_details_json))
+            master_details_file.write('\n')
+
+            # if the user is someone we've looked up follower/following for, then store associated metadata in a subfolder
+            if str(user_details_json["id_str"]) in user_details:
+
+                print("    Storing details for %s" % user_details_json["screen_name"])
+                # writing to the file system? make sure the shit isn't going to overwrite /etc/passwd
+                unsafe_username = user_details_json["screen_name"]
+                safe_username = ascii_pattern.sub('', str(unsafe_username))
+
+                unsafe_userid = user_details_json["id_str"]
+                safe_userid = ascii_pattern.sub('', str(unsafe_userid))
+
+                filename_pre = "%s_%s" % (safe_userid, safe_username)
+                #user_details_following_filename = "user_details/%s/%s_user_details_following.jsonl" % (filename_pre, filename_pre)
+                #user_details_followers_filename = "user_details/%s/%s_user_details_followers.jsonl" % (filename_pre, filename_pre)
+                user_details_self_filename = "user_details/%s/%s_user_details_self.jsonl" % (filename_pre, filename_pre)
+
+                if not os.path.exists('user_details/'+filename_pre):
+                    os.makedirs('user_details/' + filename_pre)
+
+                print("    Storing self")
+                with open(user_details_self_filename, 'a', encoding="utf-8-sig") as details_file:
+                    details_file.truncate(0)
+                    details_file.write(str(user_details_json))
+                    details_file.write('\n')
+                    details_file.close()
+
+                #print("      Storing %s following" % len(user_details[str(safe_userid)]['following_ids']))
+                # with open(user_details_following_filename, 'a', encoding="utf-8-sig") as details_file:
+                #    details_file.truncate(0)
+                #    for user_id in user_details[str(safe_userid)]['following_ids']:
+                #        details_file.write(str(user_id_json_map[user_id]))
+                #        details_file.write('\n')
+                #    details_file.close()
+
+                #print("      Storing %s followers" % len(user_details[str(safe_userid)]['follower_ids']))
+                # with open(user_details_followers_filename, 'a', encoding="utf-8-sig") as details_file:
+                #    details_file.truncate(0)
+                #    for user_id in user_details[str(safe_userid)]['follower_ids']:
+                #        details_file.write(str(user_id_json_map[user_id]))
+                #        details_file.write('\n')
+                #    details_file.close()
+
+        master_details_file.close()
+
+
+def download_json_data(TWEETS_LOCATION, is_dry_run):
 
     # We use a dict to store filenames of users we write to
     # this lets us track all the open files to close them later
@@ -178,6 +271,10 @@ def download_json_data(TWEETS_LOCATION, is_dry_run):
 
     print("Beginning twarc tweet download")
     try:
+
+        print("  creating /tweet_metadata/ directory")
+        if not os.path.exists('tweet_metadata'):
+            os.makedirs('tweet_metadata')
 
         print("  Creating /tweet/ dirctory")
         if not os.path.exists('tweets'):
@@ -198,6 +295,8 @@ def download_json_data(TWEETS_LOCATION, is_dry_run):
         should_display_user_count = False
         should_display_media_count = False
 
+        user_ids = set()
+
         for tweet in twarc.hydrate(open(TWEETS_LOCATION)):
             tweet_json = json.dumps(tweet)
 
@@ -207,6 +306,9 @@ def download_json_data(TWEETS_LOCATION, is_dry_run):
 
             unsafe_userid = tweet["user"]["id"]
             safe_userid = ascii_pattern.sub('', str(unsafe_userid))
+
+            # store user ID for lookup later
+            user_ids.add(safe_userid)
 
             # generate a filename programatically
             filename_pre = "%s_%s" % (safe_userid, safe_username)
@@ -225,7 +327,7 @@ def download_json_data(TWEETS_LOCATION, is_dry_run):
                 create_new_filehandle(filepool, "tweet_files", tweet_data_filename)
                 create_new_filehandle(filepool, "media_url_files", media_urls_filename)
 
-                #print("  creating file for %s (%s)" % (tweet["user"]["screen_name"], tweet["user"]["id"]))
+                # print("  creating file for %s (%s)" % (tweet["user"]["screen_name"], tweet["user"]["id"]))
 
             tweet_file = get_filehandle(filepool, "tweet_files", tweet_data_filename)
             media_url_file = get_filehandle(filepool, "media_url_files", media_urls_filename)
@@ -274,6 +376,9 @@ def download_json_data(TWEETS_LOCATION, is_dry_run):
         print("Done downloading tweets, Closing files (may take a moment)")
         close_all_open_handles(filepool["tweet_files"])
         close_all_open_handles(filepool["media_url_files"])
+
+    print("Looking up User Details / Followers / Following")
+    download_user_details(user_ids)
 
 
 # parse and strip twitter backup/export
