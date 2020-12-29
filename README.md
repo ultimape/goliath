@@ -24,7 +24,7 @@ Twitter released their archive functionality [back in 2012](https://blog.twitter
 
 As a number of people are seeking to leave the platform for greener pasture (*\*cough\** Mastodon *\*cough\**), this completely broken archive system is *unacceptable*.
 
-We seek to fix that.
+The goal is to fix that.
 
 **Problems with the Archive Include, but are not limited to:**
 * Images are not part of the archive, but are still stored on Twitter's image hosting service.
@@ -41,6 +41,10 @@ It is possible to take these archives and transform them into an up-to-date and 
 The goal for this project is to automate this entire process. The most immediate goal is to build something to automate the downloading of all of your images. The longterm aim is to provide a fluid offline interface for interacting with your tweets/threads based on the data from the Twitter API.
 
 ----
+
+## 2020 update
+
+Twitter changed their archive format during the development of this project and as such the export injest process needs to be re-evaluated and rebuilt from the ground up. Due to my own health issus, I have been unable to focus on this project with any serious effort.
 
 ## How to Use
 
